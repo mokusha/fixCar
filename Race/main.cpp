@@ -4,6 +4,9 @@
 
 using namespace std;
 
+
+//today
+
 bool gameOver;
 //символы заполнения поля
 const int SPACE = 32, CAR = 219, BLOCK = 178;
