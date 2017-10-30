@@ -11,27 +11,51 @@ const int BORDER_H = 205, BORDER_V = 186, BORDER_1 = 201, BORDER_2 = 187, BORDER
 //значения клавиш считываемых с клавиатуры
 const int KEY_LEFT = 75, KEY_RIGHT = 77, KEY_UP = 72, KEY_DOWN = 80, KEY_ENTER = 13, KEY_ESC = 27;
 
-int arrDisplay[20][20];
-int arrMyCar[4][3] = { { SPACE,CAR,SPACE },{ CAR,CAR,CAR },{ SPACE,CAR,SPACE },{ CAR,CAR,CAR } };
+const int DISPLAY_HEIGHT = 20, DISPLAY_WIDTH = 20;
+int arrDisplay[DISPLAY_HEIGHT][DISPLAY_WIDTH];
+
+const int CAR_HEIGHT = 4, CAR_WIDTH = 3;
+int arrMyCar[CAR_HEIGHT][CAR_WIDTH] = { { SPACE,CAR,SPACE },{ CAR,CAR,CAR },{ SPACE,CAR,SPACE },{ CAR,CAR,CAR } };
 int i0MyCar = 15, j0MyCar = 16;
 int i0Block = 1, j0Block, i1Block, j1Block;
 int dir;
 int countCycle = 0;
-unsigned long int tBegin = 0, tEnd = 0, tDuration;
+unsigned long int tBegin = 0, tEnd = 0, tDuration=0;
 unsigned long int timeEx, tBeginPause = 0, tEndPause = 0, tDurationPause, tDurationPause2;
 int speed = 300;//миллисекунды
 int distanceCount = 0;
 
-void InscribeMyCar(int arrDisplay[20][20], int i0MyCar, int j0MyCar, int arrMyCar[4][3])
+void InscribeMyCar(int arrDisplay[DISPLAY_HEIGHT][DISPLAY_WIDTH], int i0MyCar, int j0MyCar, int arrMyCar[4][3]);
+void BeginBlock(int arrDisplay[DISPLAY_HEIGHT][DISPLAY_WIDTH], int i0Block, int j0Block);
+void Setup();
+bool GameOver();
+void Draw();
+void MoveBlock(int arrDisplay[DISPLAY_HEIGHT][DISPLAY_WIDTH]);//перемешение препятсвий
+void InputLogic();
+
+int main()
 {
-	for (int i = i0MyCar; i < i0MyCar + 4; i++)
-		for (int j = j0MyCar; j < j0MyCar + 3; j++)
+	Setup();
+	tBegin = clock();
+	while (!gameOver)
+	{
+		if (_kbhit() || tDuration >= speed)
+			Draw();
+		InputLogic();
+	}
+	return 0;
+}
+
+void InscribeMyCar(int arrDisplay[DISPLAY_HEIGHT][DISPLAY_WIDTH], int i0MyCar, int j0MyCar, int arrMyCar[4][3])
+{
+	for (int i = i0MyCar; i < i0MyCar + CAR_HEIGHT; i++)
+		for (int j = j0MyCar; j < j0MyCar + CAR_WIDTH; j++)
 			arrDisplay[i][j] = arrMyCar[i - i0MyCar][j - j0MyCar];
 }
 
-void BeginBlock(int arrDisplay[20][20], int i0Block, int j0Block)
+void BeginBlock(int arrDisplay[DISPLAY_HEIGHT][DISPLAY_WIDTH], int i0Block, int j0Block)
 {
-	j0Block = rand() % 17 + 1;
+	j0Block = rand() % (DISPLAY_WIDTH - CAR_WIDTH) + 1;
 	arrDisplay[i0Block][j0Block] = BLOCK;
 	arrDisplay[i0Block][j0Block + 1] = BLOCK;
 }
@@ -39,25 +63,23 @@ void BeginBlock(int arrDisplay[20][20], int i0Block, int j0Block)
 void Setup()
 {
 	gameOver = false;
-	int i;
-	int j;
-	for (i = 0; i < 20; i++)
-		for (j = 0; j < 20; j++)
+	for (int i = 0; i < DISPLAY_HEIGHT; i++)
+		for (int j = 0; j < DISPLAY_WIDTH; j++)
 		{
-			if (i == 0 || i == 19)
+			if (i == 0 || i == DISPLAY_HEIGHT - 1)
 				arrDisplay[i][j] = BORDER_H;
 			else
 			{
-				if (j == 0 || j == 19)
+				if (j == 0 || j == DISPLAY_WIDTH - 1)
 					arrDisplay[i][j] = BORDER_V;
 				else
 					arrDisplay[i][j] = SPACE;
 			}
 		}
 	arrDisplay[0][0] = BORDER_1;
-	arrDisplay[0][19] = BORDER_2;
-	arrDisplay[19][0] = BORDER_3;
-	arrDisplay[19][19] = BORDER_4;
+	arrDisplay[0][DISPLAY_WIDTH - 1] = BORDER_2;
+	arrDisplay[DISPLAY_HEIGHT - 1][0] = BORDER_3;
+	arrDisplay[DISPLAY_HEIGHT - 1][DISPLAY_WIDTH - 1] = BORDER_4;
 	InscribeMyCar(arrDisplay, i0MyCar, j0MyCar, arrMyCar);
 	BeginBlock(arrDisplay, i0Block, j0Block);
 }
@@ -65,7 +87,12 @@ void Setup()
 bool GameOver()
 {
 	system("cls");
-	cout << endl << endl << endl << endl << endl << endl << endl << endl << endl << "\t\t\tGame Over" << endl << endl << endl << endl << endl << endl;
+	cout << endl << endl << endl
+		<< endl << endl << endl
+		<< endl << endl << endl
+		<< "\t\t\tGame Over"
+		<< endl << endl << endl
+		<< endl << endl << endl;
 	system("pause");
 	bool res = true;
 	return res;
@@ -74,9 +101,9 @@ bool GameOver()
 void Draw()
 {
 	system("cls");
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < DISPLAY_HEIGHT; i++)
 	{
-		for (int j = 0; j < 20; j++)
+		for (int j = 0; j < DISPLAY_WIDTH; j++)
 			cout << char(arrDisplay[i][j]);
 		cout << endl;
 	}
@@ -85,13 +112,13 @@ void Draw()
 	cout << "Distance: " << distanceCount << endl;//количество пройденный полей
 }
 
-void MoveBlock(int arrDisplay[20][20])//перемешение препятсвий
+void MoveBlock(int arrDisplay[DISPLAY_HEIGHT][DISPLAY_WIDTH])//перемешение препятсвий
 {
-	for (int i = 18; i >= 0; i--)
+	for (int i = DISPLAY_HEIGHT - 2; i >= 0; i--)
 	{
-		for (int j = 0; j < 18; j++)
+		for (int j = 0; j < DISPLAY_WIDTH - 2; j++)
 		{
-			if (arrDisplay[i][j] == BLOCK && i == 18)
+			if (arrDisplay[i][j] == BLOCK && i == DISPLAY_HEIGHT - 2)
 				arrDisplay[i][j] = SPACE;
 			else
 				if (arrDisplay[i][j] == BLOCK)
@@ -102,8 +129,8 @@ void MoveBlock(int arrDisplay[20][20])//перемешение препятсвий
 					arrDisplay[i][j + 1] = SPACE;
 				}
 		}
-		if (arrDisplay[i][18] == BLOCK)
-			arrDisplay[i][18] = SPACE;
+		if (arrDisplay[i][DISPLAY_WIDTH - 2] == BLOCK)
+			arrDisplay[i][DISPLAY_WIDTH - 2] = SPACE;
 	}
 }
 
@@ -162,8 +189,8 @@ void InputLogic()
 		}
 	}
 	//определение координат препятсвия
-	for (int i = 1; i<19; i++)
-		for (int j = 1; j < 19; j++)
+	for (int i = 1; i<DISPLAY_HEIGHT - 1; i++)
+		for (int j = 1; j < DISPLAY_WIDTH - 1; j++)
 		{
 			if (arrDisplay[i][j] == BLOCK)
 			{
@@ -172,9 +199,9 @@ void InputLogic()
 			}
 		}
 	//столкновение
-	for (int i = i0MyCar; i < i0MyCar + 4; i++)
+	for (int i = i0MyCar; i < i0MyCar + CAR_HEIGHT; i++)
 	{
-		for (int j = j0MyCar; j < j0MyCar + 3; j++)
+		for (int j = j0MyCar; j < j0MyCar + CAR_WIDTH; j++)
 		{
 			if (arrDisplay[i][j] != CAR)
 				if ((i1Block == i && j1Block == j) || (i1Block == i && j1Block - 1 == j))
@@ -184,17 +211,4 @@ void InputLogic()
 	tEnd = clock();
 	tDuration = tEnd - tBegin;
 	timeEx = clock() - tDurationPause2;
-}
-
-int main()
-{
-	Setup();
-	tBegin = clock();
-	while (!gameOver)
-	{
-		if (_kbhit() || tDuration >= speed)
-			Draw();
-		InputLogic();
-	}
-	return 0;
 }
